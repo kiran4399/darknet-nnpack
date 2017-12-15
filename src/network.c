@@ -140,6 +140,8 @@ char *get_layer_string(LAYER_TYPE a)
             return "crnn";
         case MAXPOOL:
             return "maxpool";
+        case SPPOOL:
+            return "spppool";
         case REORG:
             return "reorg";
         case AVGPOOL:

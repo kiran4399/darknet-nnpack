@@ -68,6 +68,7 @@ typedef enum {
     DECONVOLUTIONAL,
     CONNECTED,
     MAXPOOL,
+    SPPOOL,
     SOFTMAX,
     DETECTION,
     DROPOUT,
@@ -199,6 +200,15 @@ struct layer{
     float temperature;
     float probability;
     float scale;
+
+    //Newly added
+    int pyramids;
+    int sum;
+    int   * spp_size;
+    int   * spp_stride;
+    int   * spp_pad;
+    int   * spp_hash;
+    int   * spp_cum;
 
     char  * cweights;
     int   * indexes;

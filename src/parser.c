@@ -20,6 +20,7 @@
 #include "list.h"
 #include "local_layer.h"
 #include "maxpool_layer.h"
+#include "sppool_layer.h"
 #include "normalization_layer.h"
 #include "option_list.h"
 #include "parser.h"
@@ -63,6 +64,8 @@ LAYER_TYPE string_to_layer_type(char * type)
             || strcmp(type, "[connected]")==0) return CONNECTED;
     if (strcmp(type, "[max]")==0
             || strcmp(type, "[maxpool]")==0) return MAXPOOL;
+    if (strcmp(type, "[spp]")==0
+            || strcmp(type, "[sppool]")==0) return SPPOOL;
     if (strcmp(type, "[reorg]")==0) return REORG;
     if (strcmp(type, "[avg]")==0
             || strcmp(type, "[avgpool]")==0) return AVGPOOL;
@@ -416,6 +419,40 @@ maxpool_layer parse_maxpool(list *options, size_params params)
     maxpool_layer layer = make_maxpool_layer(batch,h,w,c,size,stride,padding);
     return layer;
 }
+
+sppool_layer parse_sppool(list *options, size_params params)
+{
+    int levels = option_find_int(options, "levels",1);
+    int sum = 0;
+    int* stride;
+    int* size;
+    int* pad;
+    int* hash;
+    int* cum;
+    int i, j;
+    for(i = 0; i< levels; i++){
+        stride[i] = option_find_int(options, "stride",1);
+        size[i] = option_find_int(options, "size",stride[i]);
+        pad[i] = option_find_int_quiet(options, "padding", (size[i]-1)/2);
+        for(j = sum; j< sum + size[i]*size[i]; j++){
+            hash[j] = i;
+        }
+        sum += size[i]*size[i];
+        cum[i] = sum;
+    }
+
+    int batch,h,w,c;
+    h = params.h;
+    w = params.w;
+    c = params.c;
+    batch=params.batch;
+    if(!(h && w && c)) error("Layer before sppool layer must output image.");
+
+    sppool_layer layer = make_sppool_layer(batch,h,w,c,sum,size,stride,pad, hash, cum);
+    return layer;
+}
+
+
 
 avgpool_layer parse_avgpool(list *options, size_params params)
 {
